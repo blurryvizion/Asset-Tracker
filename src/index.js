@@ -4,6 +4,7 @@ const cors = require('cors');
 
 const authRoutes = require('./routes/auth');
 const assetRoutes = require('./routes/assets');
+const userRoutes = require('./routes/users');
 
 const app = express();
 app.use(cors());
@@ -12,6 +13,7 @@ app.use(express.json());
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/assets', assetRoutes);
+app.use('/api/users', userRoutes);
 
 // Turn common database errors into friendly messages
 app.use((err, req, res, next) => {

@@ -28,12 +28,15 @@ async function seed() {
     ('PH-0002', 'phone',   'Google',  'Pixel 8',       'GGPX8002', 'retired',   'IT Storage', '2021-02-14', '2022-02-14', '2024-02-14')
   `);
 
-  // Who currently has the assigned devices
+  // Assignment history. Rows with a checked_in_at are past assignments;
+  // rows without one are who has the device right now.
   await pool.query(`
-    INSERT INTO assignments (asset_id, user_id, notes) VALUES
-    (1, 2, 'Standard laptop for new hire'),
-    (4, 2, 'Second monitor'),
-    (6, 3, 'Work phone')
+    INSERT INTO assignments (asset_id, user_id, checked_out_at, checked_in_at, notes) VALUES
+    (1, 3, NOW() - INTERVAL '400 days', NOW() - INTERVAL '200 days', 'Temporary loaner'),
+    (1, 2, NOW() - INTERVAL '190 days', NULL, 'Standard laptop for new hire'),
+    (4, 2, NOW() - INTERVAL '180 days', NULL, 'Second monitor'),
+    (3, 2, NOW() - INTERVAL '500 days', NOW() - INTERVAL '30 days', 'Returned: screen flickering'),
+    (6, 3, NOW() - INTERVAL '90 days', NULL, 'Work phone')
   `);
 
   console.log('Seed complete. Log in as admin@example.com / password123');

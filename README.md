@@ -1,6 +1,6 @@
-# IT Asset Tracker (API)
+# IT Asset Tracker
 
-Backend for an IT asset management app. Tracks company equipment, who has it, and its warranty and end-of-life dates.
+Full-stack app for managing company IT equipment. Tracks each device, who has it, its full assignment history, and its warranty and end-of-life dates.
 
 **Stack:** React (Vite), Node.js, Express, PostgreSQL, JWT auth, Docker
 
@@ -26,14 +26,20 @@ npm run dev                 # opens on http://localhost:5173
 
 Test login: `admin@example.com` / `password123` (admin) or `jane@example.com` / `password123` (employee). The login page also has one-click demo buttons.
 
-## Frontend pages
+## Features
 
 - **Login** with demo account buttons
-- **Asset list** with search, type and status filters, and warranty warnings (expired or ending within 90 days)
-- **Asset details** with a printed asset label look, plus edit and delete for admins
+- **Asset list** with search (including by person), type and status filters, and warranty warnings (expired or ending within 90 days)
+- **My devices** view so employees can see what's checked out to them
+- **Check out and check in** devices, with optional notes
+- **Assignment history** showing everyone who has had each device
 - **Add / edit form** shared by both actions
 
-Employees can view everything but only admins see the add, edit, and delete controls. The backend enforces this too, so hiding buttons is not the only protection.
+Employees can view everything but only admins see the add, edit, delete, and check out controls. The backend enforces this too, so hiding buttons is not the only protection.
+
+### How check out works
+
+Check out and check in each run as a single database transaction: the assignment record and the asset's status change together or not at all. The asset row is locked during check out so two admins can't assign the same device at the same moment, and a unique index guarantees a device is never with two people at once. The edit form can't set or clear "Assigned" directly, so the status always matches the assignment history.
 
 ## API
 
@@ -42,11 +48,15 @@ Employees can view everything but only admins see the add, edit, and delete cont
 | GET | `/api/health` | anyone | Check the server is up |
 | POST | `/api/auth/login` | anyone | Log in, get a token |
 | GET | `/api/auth/me` | logged in | Current user |
-| GET | `/api/assets` | logged in | List assets. Filters: `?status=`, `?type=`, `?search=` |
-| GET | `/api/assets/:id` | logged in | One asset |
+| GET | `/api/assets` | logged in | List assets with current holder. Filters: `?status=`, `?type=`, `?search=`, `?mine=1` |
+| GET | `/api/assets/:id` | logged in | One asset with current holder |
+| GET | `/api/assets/:id/assignments` | logged in | Assignment history |
 | POST | `/api/assets` | admin | Add an asset |
 | PUT | `/api/assets/:id` | admin | Update an asset |
 | DELETE | `/api/assets/:id` | admin | Delete an asset |
+| POST | `/api/assets/:id/checkout` | admin | Assign to a user `{ user_id, notes }` |
+| POST | `/api/assets/:id/checkin` | admin | Return to stock `{ notes }` |
+| GET | `/api/users` | admin | List users (for the check out picker) |
 
 Send the token as `Authorization: Bearer <token>` on protected routes.
 
@@ -60,11 +70,13 @@ src/
   db/seed.js          fake data
   middleware/auth.js  login check and admin check
   routes/auth.js      login routes
-  routes/assets.js    asset CRUD routes
+  routes/assets.js    asset, check out, and check in routes
+  routes/users.js     user list
+client/
+  src/pages/          login, asset list, asset details, add/edit form
+  src/components/     layout, asset label, status badge, assignment panel
 ```
 
 ## Coming next
-
-- Check out / check in routes and assignment history
 
 - Tests, GitHub Actions, and deployment

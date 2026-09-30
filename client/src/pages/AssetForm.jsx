@@ -108,11 +108,22 @@ export default function AssetForm() {
           <legend>Where it is</legend>
           <label>
             Status
-            <select name="status" value={form.status} onChange={update}>
-              {Object.entries(STATUS_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>{label}</option>
-              ))}
-            </select>
+            {form.status === 'assigned' ? (
+              <>
+                <select name="status" value="assigned" disabled>
+                  <option value="assigned">Assigned</option>
+                </select>
+                <span className="hint">Check the asset in to change its status.</span>
+              </>
+            ) : (
+              <select name="status" value={form.status} onChange={update}>
+                {Object.entries(STATUS_LABELS)
+                  .filter(([value]) => value !== 'assigned')
+                  .map(([value, label]) => (
+                    <option key={value} value={value}>{label}</option>
+                  ))}
+              </select>
+            )}
           </label>
           <label>
             Location

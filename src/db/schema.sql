@@ -39,3 +39,8 @@ CREATE TABLE IF NOT EXISTS assignments (
 
 CREATE INDEX IF NOT EXISTS idx_assets_status ON assets(status);
 CREATE INDEX IF NOT EXISTS idx_assignments_asset ON assignments(asset_id);
+
+-- An asset can only be with one person at a time:
+-- at most one assignment per asset that hasn't been checked in yet
+CREATE UNIQUE INDEX IF NOT EXISTS one_open_assignment_per_asset
+  ON assignments(asset_id) WHERE checked_in_at IS NULL;

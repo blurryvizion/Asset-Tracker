@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../AuthContext';
 import AssetTag from '../components/AssetTag';
+import AssignmentPanel from '../components/AssignmentPanel';
 import StatusBadge from '../components/StatusBadge';
 import { daysUntil, formatDate } from '../dates';
 
@@ -23,11 +24,13 @@ export default function AssetDetail() {
   const [error, setError] = useState('');
   const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
+  function loadAsset() {
     api(`/assets/${id}`)
       .then(setAsset)
       .catch((err) => setError(err.message));
-  }, [id]);
+  }
+
+  useEffect(loadAsset, [id]);
 
   async function handleDelete() {
     if (!window.confirm(`Delete ${asset.asset_tag}? This can't be undone.`)) return;
@@ -86,10 +89,7 @@ export default function AssetDetail() {
         </dl>
       </section>
 
-      <section className="panel panel-quiet">
-        <h2>Assignment history</h2>
-        <p className="muted">Check out and check in are coming in the next update.</p>
-      </section>
+      <AssignmentPanel asset={asset} onChange={loadAsset} />
     </>
   );
 }

@@ -30,6 +30,7 @@ export default function AssetList() {
   const status = params.get('status') || '';
   const type = params.get('type') || '';
   const search = params.get('search') || '';
+  const mine = params.get('mine') === '1';
 
   const [searchText, setSearchText] = useState(search);
   const [assets, setAssets] = useState([]);
@@ -59,39 +60,46 @@ export default function AssetList() {
     const query = new URLSearchParams();
     if (status) query.set('status', status);
     if (type) query.set('type', type);
+    if (mine) query.set('mine', '1');
     if (search) query.set('search', search);
 
     api(`/assets?${query}`)
       .then(setAssets)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [status, type, search]);
+  }, [status, type, search, mine]);
 
   const hasFilters = status || type || search;
 
   function clearFilters() {
     setSearchText('');
-    setParams({}, { replace: true });
+    setParams(mine ? { mine: '1' } : {}, { replace: true });
   }
 
   return (
     <>
       <div className="page-head">
         <div>
-          <h1>Assets</h1>
+          <h1>{mine ? 'My devices' : 'Assets'}</h1>
           <p className="muted">
             {loading ? 'Loading…' : `${assets.length} ${assets.length === 1 ? 'device' : 'devices'}${hasFilters ? ' match your filters' : ''}`}
           </p>
         </div>
-        {isAdmin && (
-          <Link to="/assets/new" className="btn btn-primary">Add asset</Link>
-        )}
+        <div className="head-actions">
+          <div className="segmented" role="group" aria-label="Which devices to show">
+            <button className={mine ? '' : 'active'} aria-pressed={!mine} onClick={() => updateParam('mine', '')}>All devices</button>
+            <button className={mine ? 'active' : ''} aria-pressed={mine} onClick={() => updateParam('mine', '1')}>My devices</button>
+          </div>
+          {isAdmin && (
+            <Link to="/assets/new" className="btn btn-primary">Add asset</Link>
+          )}
+        </div>
       </div>
 
       <div className="toolbar">
         <input
           type="search"
-          placeholder="Search tag, brand, model, or serial"
+          placeholder="Search tag, brand, model, serial, or person"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           aria-label="Search assets"
@@ -119,6 +127,8 @@ export default function AssetList() {
         <div className="empty">
           {hasFilters ? (
             <p>No devices match these filters. <button className="btn-link" onClick={clearFilters}>Clear filters</button> to see everything.</p>
+          ) : mine ? (
+            <p>Nothing is checked out to you right now.</p>
           ) : (
             <p>No devices yet. {isAdmin ? <Link to="/assets/new">Add the first one.</Link> : 'Ask an admin to add some.'}</p>
           )}
@@ -133,7 +143,7 @@ export default function AssetList() {
                 <th>Tag</th>
                 <th>Device</th>
                 <th>Status</th>
-                <th className="hide-sm">Location</th>
+                <th className="hide-sm">Assigned to</th>
                 <th className="hide-sm">Warranty ends</th>
               </tr>
             </thead>
@@ -150,7 +160,9 @@ export default function AssetList() {
                     <div className="muted small">{a.type}</div>
                   </td>
                   <td><StatusBadge status={a.status} /></td>
-                  <td className="hide-sm">{a.location || <span className="muted">—</span>}</td>
+                  <td className="hide-sm">
+                    {a.assigned_to_name || <span className="muted">{a.location || '—'}</span>}
+                  </td>
                   <td className="hide-sm"><WarrantyCell date={a.warranty_end} /></td>
                 </tr>
               ))}
