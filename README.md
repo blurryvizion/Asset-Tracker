@@ -48,6 +48,4 @@ src/
 
 ## Coming next
 
-- Check out / check in routes and assignment history (week 3)
-- React frontend (week 2)
 - Tests, GitHub Actions, and deployment
