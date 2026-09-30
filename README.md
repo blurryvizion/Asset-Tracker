@@ -4,6 +4,8 @@ Full-stack app for managing company IT equipment. Tracks each device, who has it
 
 **Stack:** React (Vite), Node.js, Express, PostgreSQL, JWT auth, Docker
 
+**Live demo:** _add your Render link here_ (the free server sleeps when idle, so the first load can take about a minute)
+
 ## Run it locally
 
 You need Node.js 18+ and Docker Desktop.
@@ -11,10 +13,11 @@ You need Node.js 18+ and Docker Desktop.
 ```bash
 npm install
 cp .env.example .env        # then change JWT_SECRET
-docker compose up -d        # starts Postgres and creates the tables
-npm run seed                # adds fake users and assets
-npm run dev                 # starts the API on http://localhost:4000
+docker compose up -d        # starts Postgres
+npm run dev                 # creates tables, adds sample data if empty, starts the API on http://localhost:4000
 ```
+
+Run `npm run seed` any time to reset the sample data.
 
 Then, in a second terminal, start the React frontend:
 
@@ -66,6 +69,7 @@ Send the token as `Authorization: Bearer <token>` on protected routes.
 src/
   index.js            app setup and error handling
   db/schema.sql       tables: users, assets, assignments
+  db/setup.js         creates tables and sample data on startup
   db/pool.js          database connection
   db/seed.js          fake data
   middleware/auth.js  login check and admin check
@@ -77,6 +81,21 @@ client/
   src/components/     layout, asset label, status badge, assignment panel
 ```
 
+## Deployment
+
+The app ships as one Docker image (see `Dockerfile`). A two-stage build compiles the React app, then copies only the built files and production dependencies into a small Node image. In production, Express serves both the API and the React app from one URL.
+
+Hosted on **Render** (web service from the Dockerfile) with a **Neon** Postgres database.
+
+On every start the server creates any missing tables (`src/db/setup.js`) and adds sample data if the database is empty. With `DEMO_MODE=true`, it resets the sample data on each start, so the public demo cleans itself up whenever the free server wakes from sleep. The server also refuses to start in production without a strong `JWT_SECRET`.
+
+| Variable | What it is |
+|---|---|
+| `DATABASE_URL` | Postgres connection string |
+| `JWT_SECRET` | Long random string used to sign login tokens |
+| `NODE_ENV` | Set to `production` by the Dockerfile |
+| `DEMO_MODE` | `true` to reset sample data on every start |
+
 ## Coming next
 
-- Tests, GitHub Actions, and deployment
+- Tests and GitHub Actions

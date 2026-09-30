@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
+  // Built files go in /static so they don't clash with the app's /assets pages
+  build: { assetsDir: 'static' },
   server: {
     port: 5173,
     // Any request to /api goes to the Express backend on port 4000

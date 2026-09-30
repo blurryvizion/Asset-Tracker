@@ -1,10 +1,11 @@
 // Fills the database with fake users and assets so you can test right away.
 // Run with: npm run seed
+// Dates are relative to today, so the demo always has a mix of
+// healthy, expiring-soon, and expired warranties.
 require('dotenv').config();
 const bcrypt = require('bcryptjs');
-const pool = require('./pool');
 
-async function seed() {
+async function seed(pool) {
   const hash = await bcrypt.hash('password123', 10);
 
   await pool.query('TRUNCATE assignments, assets, users RESTART IDENTITY CASCADE');
@@ -17,15 +18,17 @@ async function seed() {
     [hash]
   );
 
+  // d(n) = today plus n days (negative = in the past)
+  const d = (n) => `CURRENT_DATE + ${n}`;
   await pool.query(`
     INSERT INTO assets (asset_tag, type, brand, model, serial_number, status, location, purchase_date, warranty_end, end_of_life) VALUES
-    ('LT-0001', 'laptop',  'Dell',    'Latitude 5440', 'DL5440A1', 'assigned',  'HQ Floor 2', '2024-01-15', '2027-01-15', '2028-01-15'),
-    ('LT-0002', 'laptop',  'Lenovo',  'ThinkPad T14',  'LNT14B22', 'in_stock',  'IT Storage', '2023-06-01', '2026-11-01', '2027-06-01'),
-    ('LT-0003', 'laptop',  'Apple',   'MacBook Air',   'APMBA333', 'in_repair', 'IT Storage', '2022-09-10', '2025-09-10', '2026-12-10'),
-    ('MN-0001', 'monitor', 'LG',      '27UK850',       'LG27K001', 'assigned',  'HQ Floor 2', '2023-03-20', '2026-03-20', '2029-03-20'),
-    ('MN-0002', 'monitor', 'Samsung', 'S24R350',       'SM24R002', 'in_stock',  'IT Storage', '2024-05-05', '2027-05-05', '2030-05-05'),
-    ('PH-0001', 'phone',   'Apple',   'iPhone 14',     'APIP1401', 'assigned',  'Remote',     '2023-10-01', '2024-10-01', '2026-10-01'),
-    ('PH-0002', 'phone',   'Google',  'Pixel 8',       'GGPX8002', 'retired',   'IT Storage', '2021-02-14', '2022-02-14', '2024-02-14')
+    ('LT-0001', 'laptop',  'Dell',    'Latitude 5440', 'DL5440A1', 'assigned',  'HQ Floor 2', ${d(-990)}, ${d(105)},  ${d(470)}),
+    ('LT-0002', 'laptop',  'Lenovo',  'ThinkPad T14',  'LNT14B22', 'in_stock',  'IT Storage', ${d(-1035)}, ${d(32)},  ${d(245)}),
+    ('LT-0003', 'laptop',  'Apple',   'MacBook Air',   'APMBA333', 'in_repair', 'IT Storage', ${d(-1480)}, ${d(-385)}, ${d(71)}),
+    ('MN-0001', 'monitor', 'LG',      '27UK850',       'LG27K001', 'assigned',  'HQ Floor 2', ${d(-1290)}, ${d(-194)}, ${d(900)}),
+    ('MN-0002', 'monitor', 'Samsung', 'S24R350',       'SM24R002', 'in_stock',  'IT Storage', ${d(-878)},  ${d(582)},  ${d(1313)}),
+    ('PH-0001', 'phone',   'Apple',   'iPhone 14',     'APIP1401', 'assigned',  'Remote',     ${d(-1095)}, ${d(-730)}, ${d(40)}),
+    ('PH-0002', 'phone',   'Google',  'Pixel 8',       'GGPX8002', 'retired',   'IT Storage', ${d(-2055)}, ${d(-1690)}, ${d(-960)})
   `);
 
   // Assignment history. Rows with a checked_in_at are past assignments;
@@ -38,12 +41,18 @@ async function seed() {
     (3, 2, NOW() - INTERVAL '500 days', NOW() - INTERVAL '30 days', 'Returned: screen flickering'),
     (6, 3, NOW() - INTERVAL '90 days', NULL, 'Work phone')
   `);
-
-  console.log('Seed complete. Log in as admin@example.com / password123');
-  await pool.end();
 }
 
-seed().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+module.exports = seed;
+
+// Only runs when started with "npm run seed", not when another file requires it
+if (require.main === module) {
+  const pool = require('./pool');
+  seed(pool)
+    .then(() => console.log('Seed complete. Log in as admin@example.com / password123'))
+    .catch((err) => {
+      console.error(err);
+      process.exitCode = 1;
+    })
+    .finally(() => pool.end());
+}
