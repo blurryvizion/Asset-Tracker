@@ -2,7 +2,7 @@
 
 Backend for an IT asset management app. Tracks company equipment, who has it, and its warranty and end-of-life dates.
 
-**Stack:** Node.js, Express, PostgreSQL, JWT auth, Docker
+**Stack:** React (Vite), Node.js, Express, PostgreSQL, JWT auth, Docker
 
 ## Run it locally
 
@@ -16,7 +16,24 @@ npm run seed                # adds fake users and assets
 npm run dev                 # starts the API on http://localhost:4000
 ```
 
-Test login: `admin@example.com` / `password123` (admin) or `jane@example.com` / `password123` (employee).
+Then, in a second terminal, start the React frontend:
+
+```bash
+cd client
+npm install
+npm run dev                 # opens on http://localhost:5173
+```
+
+Test login: `admin@example.com` / `password123` (admin) or `jane@example.com` / `password123` (employee). The login page also has one-click demo buttons.
+
+## Frontend pages
+
+- **Login** with demo account buttons
+- **Asset list** with search, type and status filters, and warranty warnings (expired or ending within 90 days)
+- **Asset details** with a printed asset label look, plus edit and delete for admins
+- **Add / edit form** shared by both actions
+
+Employees can view everything but only admins see the add, edit, and delete controls. The backend enforces this too, so hiding buttons is not the only protection.
 
 ## API
 
@@ -49,5 +66,4 @@ src/
 ## Coming next
 
 - Check out / check in routes and assignment history (week 3)
-- React frontend (week 2)
 - Tests, GitHub Actions, and deployment
