@@ -96,6 +96,4 @@ On every start the server creates any missing tables (`src/db/setup.js`) and add
 | `NODE_ENV` | Set to `production` by the Dockerfile |
 | `DEMO_MODE` | `true` to reset sample data on every start |
 
-## Coming next
-
-- Tests and GitHub Actions
+**Live demo:** https://asset-tracker-2bbc.onrender.com (the free server sleeps when idle, so the first load can take about a minute)
