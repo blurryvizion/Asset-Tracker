@@ -65,5 +65,6 @@ src/
 
 ## Coming next
 
-- Check out / check in routes and assignment history (week 3)
+- Check out / check in routes and assignment history
+
 - Tests, GitHub Actions, and deployment
