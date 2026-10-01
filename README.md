@@ -1,95 +1,44 @@
 # IT Asset Tracker
 
+Full-stack app for tracking company IT equipment: who has each device, its assignment history, and its warranty and end-of-life dates.
 
-**Stack:** React (Vite), Node.js, Express, PostgreSQL, JWT auth, 
+**Live demo:** https://asset-tracker-2bbc.onrender.com (free server, first load can take about a minute)
+
+**Stack:** React (Vite), Node.js, Express, PostgreSQL, JWT auth, Docker, Render, Neon
+
+## Features
+
+- Admin and employee roles, enforced on the backend
+- Search and filter devices, with warranty warnings
+- Check out and check in devices, with full assignment history
+- "My devices" view for employees
+- One-click demo login
+
+## How check out works
+
+Check out and check in run as database transactions with row locking, and a unique index makes sure a device is never assigned to two people at once.
+
 ## Run it locally
 
-You need Node.js 18+ and Docker Desktop.
+Needs Node.js 18+ and Docker Desktop.
 
 ```bash
 npm install
-cp .env.example .env        # then change JWT_SECRET
-docker compose up -d        # starts Postgres
-npm run dev                 # creates tables, adds sample data if empty, starts the API on http://localhost:4000
+cp .env.example .env
+docker compose up -d
+npm run dev
 ```
 
-Run `npm run seed` any time to reset the sample data.
-
-Then, in a second terminal, start the React frontend:
+In a second terminal:
 
 ```bash
 cd client
 npm install
-npm run dev                 # opens on http://localhost:5173
+npm run dev
 ```
 
-Test login: `admin@example.com` / `password123` (admin) or `jane@example.com` / `password123` (employee). The login page also has one-click demo buttons.
-
-## Features
-
-- **Login** with demo account buttons
-- **Asset list** with search (including by person), type and status filters, and warranty warnings (expired or ending within 90 days)
-- **My devices** view so employees can see what's checked out to them
-- **Check out and check in** devices, with optional notes
-- **Assignment history** showing everyone who has had each device
-- **Add / edit form** shared by both actions
-
-Employees can view everything but only admins see the add, edit, delete, and check out controls. The backend enforces this too, so hiding buttons is not the only protection.
-
-### How check out works
-
-Check out and check in each run as a single database transaction: the assignment record and the asset's status change together or not at all. The asset row is locked during check out so two admins can't assign the same device at the same moment, and a unique index guarantees a device is never with two people at once. The edit form can't set or clear "Assigned" directly, so the status always matches the assignment history.
-
-## API
-
-| Method | Route | Who | What it does |
-|---|---|---|---|
-| GET | `/api/health` | anyone | Check the server is up |
-| POST | `/api/auth/login` | anyone | Log in, get a token |
-| GET | `/api/auth/me` | logged in | Current user |
-| GET | `/api/assets` | logged in | List assets with current holder. Filters: `?status=`, `?type=`, `?search=`, `?mine=1` |
-| GET | `/api/assets/:id` | logged in | One asset with current holder |
-| GET | `/api/assets/:id/assignments` | logged in | Assignment history |
-| POST | `/api/assets` | admin | Add an asset |
-| PUT | `/api/assets/:id` | admin | Update an asset |
-| DELETE | `/api/assets/:id` | admin | Delete an asset |
-| POST | `/api/assets/:id/checkout` | admin | Assign to a user `{ user_id, notes }` |
-| POST | `/api/assets/:id/checkin` | admin | Return to stock `{ notes }` |
-| GET | `/api/users` | admin | List users (for the check out picker) |
-
-Send the token as `Authorization: Bearer <token>` on protected routes.
-
-## Project structure
-
-```
-src/
-  index.js            app setup and error handling
-  db/schema.sql       tables: users, assets, assignments
-  db/setup.js         creates tables and sample data on startup
-  db/pool.js          database connection
-  db/seed.js          fake data
-  middleware/auth.js  login check and admin check
-  routes/auth.js      login routes
-  routes/assets.js    asset, check out, and check in routes
-  routes/users.js     user list
-client/
-  src/pages/          login, asset list, asset details, add/edit form
-  src/components/     layout, asset label, status badge, assignment panel
-```
+Open http://localhost:5173 and use the demo login buttons.
 
 ## Deployment
 
-The app ships as one Docker image (see `Dockerfile`). A two-stage build compiles the React app, then copies only the built files and production dependencies into a small Node image. In production, Express serves both the API and the React app from one URL.
-
-Hosted on **Render** (web service from the Dockerfile) with a **Neon** Postgres database.
-
-On every start the server creates any missing tables (`src/db/setup.js`) and adds sample data if the database is empty. With `DEMO_MODE=true`, it resets the sample data on each start, so the public demo cleans itself up whenever the free server wakes from sleep. The server also refuses to start in production without a strong `JWT_SECRET`.
-
-| Variable | What it is |
-|---|---|
-| `DATABASE_URL` | Postgres connection string |
-| `JWT_SECRET` | Long random string used to sign login tokens |
-| `NODE_ENV` | Set to `production` by the Dockerfile |
-| `DEMO_MODE` | `true` to reset sample data on every start |
-
-**Live demo:** https://asset-tracker-2bbc.onrender.com (the free server sleeps when idle, so the first load can take about a minute)
+One Docker image serves both the API and the React app. Hosted on Render with a Neon Postgres database. Set `DATABASE_URL`, `JWT_SECRET`, and `DEMO_MODE=true` (resets sample data on each restart).
