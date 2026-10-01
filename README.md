@@ -1,6 +1,7 @@
 # IT Asset Tracker
 
-Full-stack app for managing company IT equipment. Tracks each device, who has it, its full assignment history, and its warranty and end-of-life dates.
+**Stack:** React (Vite), Node.js, Express, PostgreSQL, JWT auth, Docker, Render, Neon
+
 
 **Stack:** React (Vite), Node.js, Express, PostgreSQL, JWT auth, 
 ## Run it locally
