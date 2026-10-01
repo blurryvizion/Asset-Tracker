@@ -1,7 +1,5 @@
 # IT Asset Tracker
 
-**Stack:** React (Vite), Node.js, Express, PostgreSQL, JWT auth, Docker, Render, Neon
-
 
 **Stack:** React (Vite), Node.js, Express, PostgreSQL, JWT auth, 
 ## Run it locally
