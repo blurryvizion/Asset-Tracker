@@ -2,10 +2,7 @@
 
 Full-stack app for managing company IT equipment. Tracks each device, who has it, its full assignment history, and its warranty and end-of-life dates.
 
-**Stack:** React (Vite), Node.js, Express, PostgreSQL, JWT auth, Docker
-
-**Live demo:** _add your Render link here_ (the free server sleeps when idle, so the first load can take about a minute)
-
+**Stack:** React (Vite), Node.js, Express, PostgreSQL, JWT auth, 
 ## Run it locally
 
 You need Node.js 18+ and Docker Desktop.
